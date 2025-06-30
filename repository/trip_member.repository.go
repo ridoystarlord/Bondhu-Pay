@@ -38,3 +38,11 @@ func (r *TripMemberRepository) Update(ctx context.Context, id string, update bso
 func (r *TripMemberRepository) Delete(ctx context.Context, id string) (*mongo.DeleteResult, error) {
 	return r.base.Delete(ctx, id)
 }
+
+func (r *TripMemberRepository) FindMemberByTripID(ctx context.Context, tripID primitive.ObjectID, results interface{}) error {
+	filter := bson.M{"tripId": tripID}
+	return r.base.FindMany(ctx, filter, 0, 0, results) // get all
+}
+
+
+

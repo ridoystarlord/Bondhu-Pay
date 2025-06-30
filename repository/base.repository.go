@@ -93,3 +93,8 @@ func (r *BaseRepository) UpdateMany(ctx context.Context, filter bson.M, update b
 func (r *BaseRepository) DeleteMany(ctx context.Context, filter bson.M) (*mongo.DeleteResult, error) {
 	return r.Collection.DeleteMany(ctx, filter)
 }
+
+func (r *BaseRepository) Count(ctx context.Context, filter bson.M) (int64, error) {
+	return r.Collection.CountDocuments(ctx, filter)
+}
+
