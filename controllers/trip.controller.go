@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -99,7 +100,7 @@ func (ctl *TripController) GetTrip(c *fiber.Ctx) error {
 	// 2. Find trip members for the trip
 	memberRepo := repository.NewTripMemberRepository(ctl.memberCollection)
 	var members []models.TripMember
-	err = memberRepo.FindMemberByTripID(ctx, tripObjectID, &members)
+	err = memberRepo.FindManyByTrip(ctx, tripObjectID, &members)
 	if err != nil {
 		return utils.InternalWrap(c, err)
 	}
@@ -178,45 +179,90 @@ func (t *TripController) GetMyTrips(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Get pagination params from query
+	// 1. Get pagination params
 	page := c.QueryInt("page", 1)
 	if page < 1 {
 		page = 1
 	}
-
 	perPage := c.QueryInt("limit", 10)
 	if perPage < 1 {
 		perPage = 10
 	}
+	skip := (page - 1) * perPage
 
-	skip := int64((page - 1) * perPage)
-	limit := int64(perPage)
-
-	filter := bson.M{"createdById": userID}
-
-	// Count total matching documents using the base Count method
-	count, err := t.repo.Count(ctx, filter)
-	if err != nil {
-		return utils.Internal(c, "Failed to count trips")
+	// 2. Find trips created by user
+	var createdTrips []models.Trip
+	createdFilter := bson.M{"createdById": userID}
+	if err := t.repo.FindMany(ctx, createdFilter, 0, 0, &createdTrips); err != nil {
+		return utils.Internal(c, "Failed to fetch created trips")
 	}
 
-	// Fetch paginated results
+	// 3. Find trips where user is a member
+	memberRepo := repository.NewTripMemberRepository(t.memberCollection)
+	var memberships []models.TripMember
+	if err := memberRepo.FindByUserID(ctx, userID, &memberships); err != nil {
+		return utils.Internal(c, "Failed to fetch memberships")
+	}
+
+	// 4. Collect trip IDs from memberships
+	tripIDsMap := make(map[primitive.ObjectID]bool)
+	for _, t := range createdTrips {
+		tripIDsMap[t.ID] = true
+	}
+	for _, m := range memberships {
+		tripIDsMap[m.TripID] = true
+	}
+
+	// 5. Convert to a slice of unique trip IDs
+	var allTripIDs []primitive.ObjectID
+	for id := range tripIDsMap {
+		allTripIDs = append(allTripIDs, id)
+	}
+
+	if len(allTripIDs) == 0 {
+		// No trips found
+		return utils.Success(c, fiber.StatusOK, "No trips found", []models.Trip{}, &utils.Pagination{
+			Total:      0,
+			Page:       page,
+			Limit:      perPage,
+			TotalPages: 0,
+		})
+	}
+
+	// 6. Query trips by allTripIDs
+	filter := bson.M{"_id": bson.M{"$in": allTripIDs}}
 	var trips []models.Trip
-	err = t.repo.FindMany(ctx, filter, limit, skip, &trips)
-	if err != nil {
+	if err := t.repo.FindMany(ctx, filter, 0, 0, &trips); err != nil {
 		return utils.Internal(c, "Failed to fetch trips")
 	}
 
-	// Calculate total pages
-	totalPages := int((count + int64(perPage) - 1) / int64(perPage))
+	// 7. Sort trips by CreatedAt descending
+	sort.Slice(trips, func(i, j int) bool {
+		return trips[i].CreatedAt.After(trips[j].CreatedAt)
+	})
 
-	return utils.Success(c, fiber.StatusOK, "Trips fetched successfully", trips, &utils.Pagination{
-		Total:      int(count),
+	// 8. Pagination
+	total := len(trips)
+	totalPages := (total + perPage - 1) / perPage
+	start := skip
+	if start > total {
+		start = total
+	}
+	end := start + perPage
+	if end > total {
+		end = total
+	}
+	paginatedTrips := trips[start:end]
+
+	// 9. Return response
+	return utils.Success(c, fiber.StatusOK, "Trips fetched successfully", paginatedTrips, &utils.Pagination{
+		Total:      total,
 		Page:       page,
 		Limit:      perPage,
 		TotalPages: totalPages,
 	})
 }
+
 
 
 

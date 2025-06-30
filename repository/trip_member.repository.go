@@ -39,10 +39,11 @@ func (r *TripMemberRepository) Delete(ctx context.Context, id string) (*mongo.De
 	return r.base.Delete(ctx, id)
 }
 
-func (r *TripMemberRepository) FindMemberByTripID(ctx context.Context, tripID primitive.ObjectID, results interface{}) error {
-	filter := bson.M{"tripId": tripID}
-	return r.base.FindMany(ctx, filter, 0, 0, results) // get all
+func (r *TripMemberRepository) FindByUserID(ctx context.Context, userID primitive.ObjectID, results interface{}) error {
+	filter := bson.M{"userId": userID}
+	return r.base.FindMany(ctx, filter, 0, 0, results)
 }
+
 
 
 
