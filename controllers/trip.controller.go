@@ -9,6 +9,7 @@ import (
 	"github.com/ridoystarlord/bondhu-pay/models"
 	"github.com/ridoystarlord/bondhu-pay/repository"
 	"github.com/ridoystarlord/bondhu-pay/utils"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -119,3 +120,57 @@ func (ctl *TripController) DeleteTrip(c *fiber.Ctx) error {
 
 	return c.SendStatus(fiber.StatusNoContent)
 }
+
+func (t *TripController) GetMyTrips(c *fiber.Ctx) error {
+	userIDStr := c.Locals("userID").(string)
+
+	userID, err := primitive.ObjectIDFromHex(userIDStr)
+	if err != nil {
+		return utils.BadRequest(c, "Invalid user ID")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Get pagination params from query
+	page := c.QueryInt("page", 1)
+	if page < 1 {
+		page = 1
+	}
+
+	perPage := c.QueryInt("limit", 10)
+	if perPage < 1 {
+		perPage = 10
+	}
+
+	skip := int64((page - 1) * perPage)
+	limit := int64(perPage)
+
+	filter := bson.M{"createdById": userID}
+
+	// Count total matching documents
+	count, err := t.repo.Collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return utils.Internal(c, "Failed to count trips")
+	}
+
+	// Fetch paginated results
+	var trips []models.Trip
+	err = t.repo.FindMany(ctx, filter, limit, skip, &trips)
+	if err != nil {
+		return utils.Internal(c, "Failed to fetch trips")
+	}
+
+	// Calculate total pages
+	totalPages := int((count + int64(perPage) - 1) / int64(perPage))
+
+	return utils.Success(c, fiber.StatusOK, "Trips fetched successfully", trips, &utils.Pagination{
+		Total:      int(count),
+		Page:       page,
+		Limit:    perPage,
+		TotalPages: totalPages,
+	})
+}
+
+
+

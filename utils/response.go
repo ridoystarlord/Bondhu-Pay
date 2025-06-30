@@ -10,7 +10,7 @@ import (
 type Pagination struct {
 	Total      int `json:"total"`
 	Page       int `json:"page"`
-	PerPage    int `json:"perPage"`
+	Limit    int `json:"limit"`
 	TotalPages int `json:"totalPages"`
 }
 

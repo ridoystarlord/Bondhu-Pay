@@ -14,6 +14,7 @@ func SetupTripRoutes(api fiber.Router, tripCollection *mongo.Collection) {
 	trip := api.Group("/trips")
 
 	trip.Post("/new", middleware.ValidateBody[dto.CreateTripRequest](), middleware.Protected(), tripController.CreateTrip)
+	trip.Get("/", middleware.Protected(), tripController.GetMyTrips)
 	trip.Get("/:id", middleware.Protected(), tripController.GetTrip)
 	trip.Put("/:id", middleware.ValidateBody[dto.UpdateTripRequest](), middleware.Protected(), tripController.UpdateTrip)
 	trip.Delete("/:id", middleware.Protected(), tripController.DeleteTrip)
