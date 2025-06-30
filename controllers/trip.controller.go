@@ -16,11 +16,13 @@ import (
 
 type TripController struct {
 	repo *repository.TripRepository
+	memberCollection *mongo.Collection
 }
 
-func NewTripController(coll *mongo.Collection) *TripController {
+func NewTripController(coll *mongo.Collection,memberColl *mongo.Collection) *TripController {
 	return &TripController{
 		repo: repository.NewTripRepository(coll),
+		memberCollection: memberColl,
 	}
 }
 func (ctl *TripController) CreateTrip(c *fiber.Ctx) error {
@@ -29,30 +31,52 @@ func (ctl *TripController) CreateTrip(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(string)
 	createdBy, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return utils.BadRequest(c,"Invalid user id")
+		return utils.BadRequest(c, "Invalid user id")
 	}
 
+	tripID := primitive.NewObjectID()
+	now := time.Now()
+
 	trip := models.Trip{
-		ID:        primitive.NewObjectID(),
-		Name:      body.Name,
-		StartDate: body.StartDate,
-		EndDate:   body.EndDate,
-		CoverPhoto: body.CoverPhoto,
+		ID:          tripID,
+		Name:        body.Name,
+		StartDate:   body.StartDate,
+		EndDate:     body.EndDate,
+		CoverPhoto:  body.CoverPhoto,
 		CreatedByID: createdBy,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	// Create the trip
 	_, err = ctl.repo.Create(ctx, trip)
 	if err != nil {
-		return utils.InternalWrap(c,err)
+		return utils.InternalWrap(c, err)
+	}
+
+	// Add the creator as a member with role Admin
+	memberRepo := repository.NewTripMemberRepository(ctl.memberCollection)
+	member := models.TripMember{
+		ID:        primitive.NewObjectID(),
+		TripID:    tripID,
+		UserID:    createdBy,
+		Role:      models.TripMemberRoleAdmin,
+		CreatedAt: now,
+		UpdatedAt: now,
+		JoinedAt:  now,
+	}
+
+	_, err = memberRepo.Create(ctx, member)
+	if err != nil {
+		return utils.InternalWrap(c, err)
 	}
 
 	return utils.Success(c, fiber.StatusCreated, "Trip created successfully", trip, nil)
 }
+
 func (ctl *TripController) GetTrip(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var trip models.Trip
