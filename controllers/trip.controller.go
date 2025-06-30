@@ -25,7 +25,7 @@ func NewTripController(coll *mongo.Collection) *TripController {
 func (ctl *TripController) CreateTrip(c *fiber.Ctx) error {
 	body := c.Locals("validatedBody").(dto.CreateTripRequest)
 
-	userID := c.Locals("userId").(string)
+	userID := c.Locals("userID").(string)
 	createdBy, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return utils.BadRequest(c,"Invalid user id")
