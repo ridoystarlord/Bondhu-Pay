@@ -31,7 +31,7 @@ func (uc *UserController) Register(c *fiber.Ctx) error {
 	defer cancel()
 
 	// Check if phone already exists
-	existing, err := uc.repo.FindByPhone(ctx, body.Phone)
+	existing, err := uc.repo.FindByPhone(ctx, body.MobileNumber)
 	if err == nil && existing != nil {
 		return utils.BadRequest(c, "Phone already registered")
 	}
@@ -46,7 +46,7 @@ func (uc *UserController) Register(c *fiber.Ctx) error {
 	user := models.User{
 		ID:           primitive.NewObjectID(),
 		Name:         body.Name,
-		Phone:        body.Phone,
+		MobileNumber: body.MobileNumber,
 		PasswordHash: hashedPassword,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
@@ -68,7 +68,7 @@ func (uc *UserController) Register(c *fiber.Ctx) error {
 		"user": fiber.Map{
 			"id":    user.ID.Hex(),
 			"name":  user.Name,
-			"phone": user.Phone,
+			"mobileNumber": user.MobileNumber,
 		},
 	}, nil)
 }
@@ -81,7 +81,7 @@ func (uc *UserController) Login(c *fiber.Ctx) error {
 	defer cancel()
 
 	// Find user by phone
-	user, err := uc.repo.FindByPhone(ctx, body.Phone)
+	user, err := uc.repo.FindByPhone(ctx, body.MobileNumber)
 	if err != nil || user == nil {
 		return utils.Unauthorized(c, "Invalid phone or password")
 	}
@@ -102,7 +102,7 @@ func (uc *UserController) Login(c *fiber.Ctx) error {
 		"user": fiber.Map{
 			"id":    user.ID.Hex(),
 			"name":  user.Name,
-			"phone": user.Phone,
+			"mobileNumber": user.MobileNumber,
 		},
 	}, nil)
 }
