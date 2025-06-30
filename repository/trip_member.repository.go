@@ -28,7 +28,7 @@ func (r *TripMemberRepository) FindByID(ctx context.Context, id string, result i
 
 func (r *TripMemberRepository) FindManyByTrip(ctx context.Context, tripID primitive.ObjectID, results interface{}) error {
 	filter := bson.M{"tripId": tripID}
-	return r.base.Find(ctx, filter, results)
+	return r.base.FindMany(ctx, filter, 0, 0, results)
 }
 
 func (r *TripMemberRepository) Update(ctx context.Context, id string, update bson.M) (*mongo.UpdateResult, error) {
