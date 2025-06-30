@@ -194,8 +194,8 @@ func (t *TripController) GetMyTrips(c *fiber.Ctx) error {
 
 	filter := bson.M{"createdById": userID}
 
-	// Count total matching documents
-	count, err := t.repo.Collection.CountDocuments(ctx, filter)
+	// Count total matching documents using the base Count method
+	count, err := t.repo.Count(ctx, filter)
 	if err != nil {
 		return utils.Internal(c, "Failed to count trips")
 	}
@@ -213,10 +213,11 @@ func (t *TripController) GetMyTrips(c *fiber.Ctx) error {
 	return utils.Success(c, fiber.StatusOK, "Trips fetched successfully", trips, &utils.Pagination{
 		Total:      int(count),
 		Page:       page,
-		Limit:    perPage,
+		Limit:      perPage,
 		TotalPages: totalPages,
 	})
 }
+
 
 
 
