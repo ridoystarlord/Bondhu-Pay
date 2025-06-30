@@ -19,9 +19,9 @@ func NewUserRepository(collection *mongo.Collection) *UserRepository {
 }
 
 // FindByPhone finds a user by phone
-func (r *UserRepository) FindByPhone(ctx context.Context, phone string) (*models.User, error) {
+func (r *UserRepository) FindByPhone(ctx context.Context, mobileNumber string) (*models.User, error) {
 	var user models.User
-	err := r.Collection.FindOne(ctx, bson.M{"phone": phone}).Decode(&user)
+	err := r.Collection.FindOne(ctx, bson.M{"mobileNumber": mobileNumber}).Decode(&user)
 	if err != nil {
 		return nil, err
 	}
