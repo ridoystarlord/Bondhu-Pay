@@ -3,18 +3,19 @@ package repository
 import (
 	"context"
 
-	"github.com/ridoystarlord/bondhu-pay/config"
 	"github.com/ridoystarlord/bondhu-pay/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserRepository struct {
 	*BaseRepository
 }
 
-func NewUserRepository() *UserRepository {
-	collection := config.GetCollection("users")
-	return &UserRepository{BaseRepository: NewBaseRepository(collection)}
+func NewUserRepository(collection *mongo.Collection) *UserRepository {
+	return &UserRepository{
+		BaseRepository: NewBaseRepository(collection),
+	}
 }
 
 // FindByPhone finds a user by phone

@@ -10,17 +10,28 @@ import (
 	"github.com/ridoystarlord/bondhu-pay/repository"
 	"github.com/ridoystarlord/bondhu-pay/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func Register(c *fiber.Ctx) error {
+type UserController struct {
+	repo *repository.UserRepository
+}
+
+func NewAuthController(coll *mongo.Collection) *UserController {
+	return &UserController{
+		repo: repository.NewUserRepository(coll),
+	}
+}
+
+// Register handles user registration
+func (uc *UserController) Register(c *fiber.Ctx) error {
 	body := c.Locals("validatedBody").(dto.RegisterRequest)
-	repo := repository.NewUserRepository()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	// Check if phone already exists
-	existing, err := repo.FindByPhone(ctx, body.Phone)
+	existing, err := uc.repo.FindByPhone(ctx, body.Phone)
 	if err == nil && existing != nil {
 		return utils.BadRequest(c, "Phone already registered")
 	}
@@ -41,7 +52,7 @@ func Register(c *fiber.Ctx) error {
 		UpdatedAt:    time.Now(),
 	}
 
-	_, err = repo.Create(ctx, user)
+	_, err = uc.repo.Create(ctx, user)
 	if err != nil {
 		return utils.Internal(c, "Failed to create user")
 	}
@@ -62,15 +73,15 @@ func Register(c *fiber.Ctx) error {
 	}, nil)
 }
 
-func Login(c *fiber.Ctx) error {
+// Login handles user authentication
+func (uc *UserController) Login(c *fiber.Ctx) error {
 	body := c.Locals("validatedBody").(dto.LoginRequest)
-	repo := repository.NewUserRepository()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	// Find user by phone
-	user, err := repo.FindByPhone(ctx, body.Phone)
+	user, err := uc.repo.FindByPhone(ctx, body.Phone)
 	if err != nil || user == nil {
 		return utils.Unauthorized(c, "Invalid phone or password")
 	}
@@ -93,5 +104,5 @@ func Login(c *fiber.Ctx) error {
 			"name":  user.Name,
 			"phone": user.Phone,
 		},
-	},nil)
+	}, nil)
 }
