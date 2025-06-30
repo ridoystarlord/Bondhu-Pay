@@ -28,6 +28,10 @@ func (r *BaseRepository) FindByID(ctx context.Context, id string, result interfa
 	return r.Collection.FindOne(ctx, filter).Decode(result)
 }
 
+func (r *BaseRepository) Find(ctx context.Context, filter bson.M, result interface{}) error {
+	return r.Collection.FindOne(ctx, filter).Decode(result)
+}
+
 // FindMany finds documents by filter with pagination
 func (r *BaseRepository) FindMany(ctx context.Context, filter bson.M, limit int64, skip int64, results interface{}) error {
 	opts := options.Find()
