@@ -26,12 +26,23 @@ func main() {
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
-			log.Printf("Unhandled error: %v", err)
-			return utils.Internal(c, "Internal Server Error")
+			code := fiber.StatusInternalServerError
+
+			// Check if it's a known Fiber error (e.g., 404)
+			if e, ok := err.(*fiber.Error); ok {
+				code = e.Code
+			}
+
+			// Log unexpected errors
+			if code == fiber.StatusInternalServerError {
+				log.Printf("Unhandled error: %v", err)
+				return utils.Internal(c, "Internal Server Error")
+			}
+
+			// For known errors, return your custom error response
+			return utils.Error(c, code, err.Error())
 		},
 	})
-
-	// Middleware
 
 	// Security headers
 	app.Use(helmet.New())
