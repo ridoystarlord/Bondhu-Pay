@@ -47,7 +47,7 @@ func (ctl *TripMemberPaymentController) Create(c *fiber.Ctx) error {
 		UpdatedAt: now,
 		PaidAt:    now,
 		MemberID:  memberID,
-		Method:   models.PaymentMethod(body.Method),
+		Method:    models.PaymentMethod(body.Method),
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

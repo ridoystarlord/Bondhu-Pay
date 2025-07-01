@@ -66,8 +66,8 @@ func (uc *UserController) Register(c *fiber.Ctx) error {
 	return utils.Success(c, fiber.StatusCreated, "User registered successfully", fiber.Map{
 		"token": token,
 		"user": fiber.Map{
-			"id":    user.ID.Hex(),
-			"name":  user.Name,
+			"id":           user.ID.Hex(),
+			"name":         user.Name,
 			"mobileNumber": user.MobileNumber,
 		},
 	}, nil)
@@ -100,8 +100,8 @@ func (uc *UserController) Login(c *fiber.Ctx) error {
 	return utils.Success(c, fiber.StatusOK, "User logged in successfully", fiber.Map{
 		"token": token,
 		"user": fiber.Map{
-			"id":    user.ID.Hex(),
-			"name":  user.Name,
+			"id":           user.ID.Hex(),
+			"name":         user.Name,
 			"mobileNumber": user.MobileNumber,
 		},
 	}, nil)

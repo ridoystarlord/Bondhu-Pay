@@ -20,4 +20,3 @@ type UpdateExpenseRequest struct {
 	Note     string              `json:"note,omitempty"`
 	Shares   []ExpenseShareInput `json:"shares,omitempty" validate:"omitempty,dive"`
 }
-

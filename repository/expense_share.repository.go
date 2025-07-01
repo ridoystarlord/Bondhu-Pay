@@ -38,3 +38,12 @@ func (r *ExpenseShareRepository) Update(ctx context.Context, id string, update b
 func (r *ExpenseShareRepository) Delete(ctx context.Context, id string) (*mongo.DeleteResult, error) {
 	return r.base.Delete(ctx, id)
 }
+
+func (r *ExpenseShareRepository) FindMany(ctx context.Context, filter bson.M, results interface{}) error {
+	return r.base.FindMany(ctx, filter, 0, 0, results)
+}
+
+func (r *ExpenseShareRepository) FindManyByTrip(ctx context.Context, tripID primitive.ObjectID, results interface{}) error {
+	filter := bson.M{"tripId": tripID}
+	return r.base.FindMany(ctx, filter, 0, 0, results)
+}

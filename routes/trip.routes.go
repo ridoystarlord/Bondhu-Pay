@@ -8,8 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func SetupTripRoutes(api fiber.Router, tripCollection *mongo.Collection,tripMemberCollection *mongo.Collection) {
-	tripController := controllers.NewTripController(tripCollection,tripMemberCollection)
+func SetupTripRoutes(api fiber.Router, tripCollection *mongo.Collection, tripMemberCollection *mongo.Collection) {
+	tripController := controllers.NewTripController(tripCollection, tripMemberCollection)
 
 	trip := api.Group("/trips")
 

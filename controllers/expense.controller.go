@@ -15,7 +15,7 @@ import (
 )
 
 type ExpenseController struct {
-	repo           *repository.ExpenseRepository
+	repo             *repository.ExpenseRepository
 	expenseShareRepo *repository.ExpenseShareRepository
 }
 

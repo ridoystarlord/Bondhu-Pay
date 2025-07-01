@@ -16,13 +16,13 @@ import (
 )
 
 type TripController struct {
-	repo *repository.TripRepository
+	repo             *repository.TripRepository
 	memberCollection *mongo.Collection
 }
 
-func NewTripController(coll *mongo.Collection,memberColl *mongo.Collection) *TripController {
+func NewTripController(coll *mongo.Collection, memberColl *mongo.Collection) *TripController {
 	return &TripController{
-		repo: repository.NewTripRepository(coll),
+		repo:             repository.NewTripRepository(coll),
 		memberCollection: memberColl,
 	}
 }
@@ -79,41 +79,40 @@ func (ctl *TripController) CreateTrip(c *fiber.Ctx) error {
 }
 
 func (ctl *TripController) GetTrip(c *fiber.Ctx) error {
-    id := c.Params("id")
-    tripObjectID, err := primitive.ObjectIDFromHex(id)
-    if err != nil {
-        return utils.BadRequest(c, "Invalid trip ID")
-    }
+	id := c.Params("id")
+	tripObjectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return utils.BadRequest(c, "Invalid trip ID")
+	}
 
-    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-    defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-    var trip models.Trip
-    err = ctl.repo.FindByID(ctx, id, &trip)
-    if err != nil {
-        return utils.NotFound(c, "Trip not found")
-    }
+	var trip models.Trip
+	err = ctl.repo.FindByID(ctx, id, &trip)
+	if err != nil {
+		return utils.NotFound(c, "Trip not found")
+	}
 
-    memberRepo := repository.NewTripMemberRepository(ctl.memberCollection)
-    membersWithUser, err := memberRepo.FindMembersWithUserInfo(ctx, tripObjectID)
-    if err != nil {
-        return utils.InternalWrap(c, err)
-    }
+	memberRepo := repository.NewTripMemberRepository(ctl.memberCollection)
+	membersWithUser, err := memberRepo.FindMembersWithUserInfo(ctx, tripObjectID)
+	if err != nil {
+		return utils.InternalWrap(c, err)
+	}
 
-    response := fiber.Map{
-        "trip":    trip,
-        "members": membersWithUser,
-    }
+	response := fiber.Map{
+		"trip":    trip,
+		"members": membersWithUser,
+	}
 
-    return utils.Success(c, fiber.StatusOK, "Trip fetched successfully", response, nil)
+	return utils.Success(c, fiber.StatusOK, "Trip fetched successfully", response, nil)
 }
-
 
 func (ctl *TripController) UpdateTrip(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var update dto.UpdateTripRequest
 	if err := c.BodyParser(&update); err != nil {
-		return utils.BadRequest(c,"Invalid input")
+		return utils.BadRequest(c, "Invalid input")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -123,7 +122,7 @@ func (ctl *TripController) UpdateTrip(c *fiber.Ctx) error {
 	var existing models.Trip
 	err := ctl.repo.FindByID(ctx, id, &existing)
 	if err != nil {
-		return utils.NotFound(c,"Trip not found")
+		return utils.NotFound(c, "Trip not found")
 	}
 
 	// Prepare update document
@@ -144,7 +143,7 @@ func (ctl *TripController) UpdateTrip(c *fiber.Ctx) error {
 
 	_, err = ctl.repo.Update(ctx, id, updateDoc)
 	if err != nil {
-		return utils.InternalWrap(c,err)
+		return utils.InternalWrap(c, err)
 	}
 
 	return utils.Success(c, fiber.StatusOK, "Trip updated successfully", nil, nil)
@@ -157,7 +156,7 @@ func (ctl *TripController) DeleteTrip(c *fiber.Ctx) error {
 
 	_, err := ctl.repo.Delete(ctx, id)
 	if err != nil {
-		return utils.NotFound(c,"Trip not found")
+		return utils.NotFound(c, "Trip not found")
 	}
 
 	return c.SendStatus(fiber.StatusNoContent)
@@ -257,8 +256,3 @@ func (t *TripController) GetMyTrips(c *fiber.Ctx) error {
 		TotalPages: totalPages,
 	})
 }
-
-
-
-
-

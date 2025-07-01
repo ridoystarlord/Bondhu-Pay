@@ -6,9 +6,9 @@ import (
 )
 
 func SetupRoutes(app *fiber.App) {
-	
+
 	api := app.Group("/api")
-	
+
 	userCollection := config.GetCollection("users")
 	tripCollection := config.GetCollection("trips")
 	tripMemberCollection := config.GetCollection("trip_members")
@@ -18,10 +18,11 @@ func SetupRoutes(app *fiber.App) {
 
 	SetupAuthRoutes(api, userCollection)
 	SetupUserRoutes(api, userCollection)
-	SetupTripRoutes(api, tripCollection,tripMemberCollection)
+	SetupTripRoutes(api, tripCollection, tripMemberCollection)
 	SetupTripMemberRoutes(api, tripMemberCollection)
 	SetupTripMemberPaymentRoutes(api, tripMemberPaymentCollection)
-	SetupExpenseRoutes(api, expenseCollection,expenseShareCollection)
+	SetupExpenseRoutes(api, expenseCollection, expenseShareCollection)
 	SetupExpenseShareRoutes(api, expenseShareCollection)
+	SetupTripReportRoutes(api, expenseCollection, expenseShareCollection, tripMemberPaymentCollection, userCollection)
 
 }

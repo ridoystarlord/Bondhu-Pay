@@ -21,4 +21,3 @@ func ValidateBody[T any]() fiber.Handler {
 		return c.Next()
 	}
 }
-

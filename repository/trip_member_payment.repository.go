@@ -35,3 +35,7 @@ func (r *TripMemberPaymentRepository) Update(ctx context.Context, id string, upd
 func (r *TripMemberPaymentRepository) Delete(ctx context.Context, id string) (*mongo.DeleteResult, error) {
 	return r.base.Delete(ctx, id)
 }
+
+func (r *TripMemberPaymentRepository) FindMany(ctx context.Context, filter bson.M, results interface{}) error {
+	return r.base.FindMany(ctx, filter, 0, 0, results)
+}

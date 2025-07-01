@@ -13,20 +13,20 @@ func Protected() fiber.Handler {
 		// Extract Authorization header
 		authHeader := c.Get("Authorization")
 		if authHeader == "" {
-			return utils.Unauthorized(c,"Missing Authorization header")
+			return utils.Unauthorized(c, "Missing Authorization header")
 		}
 
 		// Must be Bearer <token>
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			return utils.Unauthorized(c,"Invalid Authorization header format")
+			return utils.Unauthorized(c, "Invalid Authorization header format")
 		}
 		tokenString := parts[1]
 
 		// Validate and parse token
 		userID, err := utils.ParseJWT(tokenString)
 		if err != nil {
-			return utils.Unauthorized(c,"Invalid or expired token")
+			return utils.Unauthorized(c, "Invalid or expired token")
 		}
 
 		// Store userID in locals for later handlers

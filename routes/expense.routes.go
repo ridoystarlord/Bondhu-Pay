@@ -8,30 +8,30 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func SetupExpenseRoutes(api fiber.Router, expenseColl *mongo.Collection,expenseShareColl *mongo.Collection) {
-	controller := controllers.NewExpenseController(expenseColl,expenseShareColl)
+func SetupExpenseRoutes(api fiber.Router, expenseColl *mongo.Collection, expenseShareColl *mongo.Collection) {
+	controller := controllers.NewExpenseController(expenseColl, expenseShareColl)
 
 	expense := api.Group("/trips/:tripId/expenses")
 
-	expense.Post("/new", 
-		middleware.ValidateBody[dto.CreateExpenseRequest](), 
-		middleware.Protected(), 
+	expense.Post("/new",
+		middleware.ValidateBody[dto.CreateExpenseRequest](),
+		middleware.Protected(),
 		controller.CreateExpense,
 	)
 
-	expense.Get("/", 
-		middleware.Protected(), 
+	expense.Get("/",
+		middleware.Protected(),
 		controller.GetExpensesByTrip,
 	)
 
-	expense.Put("/:id", 
-		middleware.ValidateBody[dto.UpdateExpenseRequest](), 
-		middleware.Protected(), 
+	expense.Put("/:id",
+		middleware.ValidateBody[dto.UpdateExpenseRequest](),
+		middleware.Protected(),
 		controller.UpdateExpense,
 	)
 
-	expense.Delete("/:id", 
-		middleware.Protected(), 
+	expense.Delete("/:id",
+		middleware.Protected(),
 		controller.DeleteExpense,
 	)
 }

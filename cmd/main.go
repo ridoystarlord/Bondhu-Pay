@@ -29,7 +29,7 @@ func main() {
 			log.Printf("Unhandled error: %v", err)
 			return utils.Internal(c, "Internal Server Error")
 		},
-	})	
+	})
 
 	// Middleware
 

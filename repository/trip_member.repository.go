@@ -45,40 +45,33 @@ func (r *TripMemberRepository) FindByUserID(ctx context.Context, userID primitiv
 }
 
 func (r *TripMemberRepository) FindMembersWithUserInfo(ctx context.Context, tripID primitive.ObjectID) ([]bson.M, error) {
-    pipeline := mongo.Pipeline{
-        bson.D{{Key: "$match", Value: bson.D{{Key: "tripId", Value: tripID}}}},
-        bson.D{{Key: "$lookup", Value: bson.D{
-            {Key: "from", Value: "users"},
-            {Key: "localField", Value: "userId"},
-            {Key: "foreignField", Value: "_id"},
-            {Key: "as", Value: "user"},
-        }}},
-        bson.D{{Key: "$unwind", Value: bson.D{
-            {Key: "path", Value: "$user"},
-            {Key: "preserveNullAndEmptyArrays", Value: true},
-        }}},
-        bson.D{{Key: "$project", Value: bson.D{
-            {Key: "user.passwordHash", Value: 0},
-        }}},
-    }
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: bson.D{{Key: "tripId", Value: tripID}}}},
+		bson.D{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "users"},
+			{Key: "localField", Value: "userId"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "user"},
+		}}},
+		bson.D{{Key: "$unwind", Value: bson.D{
+			{Key: "path", Value: "$user"},
+			{Key: "preserveNullAndEmptyArrays", Value: true},
+		}}},
+		bson.D{{Key: "$project", Value: bson.D{
+			{Key: "user.passwordHash", Value: 0},
+		}}},
+	}
 
-    cursor, err := r.base.Collection.Aggregate(ctx, pipeline)
-    if err != nil {
-        return nil, err
-    }
-    defer cursor.Close(ctx)
+	cursor, err := r.base.Collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
 
-    var results []bson.M
-    if err := cursor.All(ctx, &results); err != nil {
-        return nil, err
-    }
+	var results []bson.M
+	if err := cursor.All(ctx, &results); err != nil {
+		return nil, err
+	}
 
-    return results, nil
+	return results, nil
 }
-
-
-
-
-
-
-
