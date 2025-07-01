@@ -12,10 +12,12 @@ func SetupRoutes(app *fiber.App) {
 	userCollection := config.GetCollection("users")
 	tripCollection := config.GetCollection("trips")
 	tripMemberCollection := config.GetCollection("trip_members")
+	tripMemberPaymentCollection := config.GetCollection("trip_member_payments")
 
 	SetupAuthRoutes(api, userCollection)
 	SetupUserRoutes(api, userCollection)
 	SetupTripRoutes(api, tripCollection,tripMemberCollection)
 	SetupTripMemberRoutes(api, tripMemberCollection)
+	SetupTripMemberPaymentRoutes(api, tripMemberPaymentCollection)
 
 }
