@@ -15,12 +15,14 @@ import (
 )
 
 type ExpenseController struct {
-	repo *repository.ExpenseRepository
+	repo           *repository.ExpenseRepository
+	expenseShareRepo *repository.ExpenseShareRepository
 }
 
-func NewExpenseController(coll *mongo.Collection) *ExpenseController {
+func NewExpenseController(expenseColl *mongo.Collection, expenseShareColl *mongo.Collection) *ExpenseController {
 	return &ExpenseController{
-		repo: repository.NewExpenseRepository(coll),
+		repo:             repository.NewExpenseRepository(expenseColl),
+		expenseShareRepo: repository.NewExpenseShareRepository(expenseShareColl),
 	}
 }
 
@@ -37,9 +39,10 @@ func (ctl *ExpenseController) CreateExpense(c *fiber.Ctx) error {
 	}
 
 	now := time.Now()
+	expenseID := primitive.NewObjectID()
 
 	expense := models.Expense{
-		ID:        primitive.NewObjectID(),
+		ID:        expenseID,
 		TripID:    tripID,
 		Amount:    body.Amount,
 		PaidBy:    paidBy,
@@ -52,9 +55,37 @@ func (ctl *ExpenseController) CreateExpense(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	// Insert expense
 	_, err = ctl.repo.Create(ctx, expense)
 	if err != nil {
 		return utils.Internal(c, "Failed to create expense")
+	}
+
+	// Build shares
+	var shares []interface{}
+	for _, s := range body.Shares {
+		uid, err := primitive.ObjectIDFromHex(s.UserID)
+		if err != nil {
+			return utils.BadRequest(c, "Invalid share user ID")
+		}
+		share := models.ExpenseShare{
+			ID:        primitive.NewObjectID(),
+			ExpenseID: expenseID,
+			UserID:    uid,
+			Amount:    s.Amount,
+			Settled:   false,
+			CreatedAt: now,
+			UpdatedAt: now,
+		}
+		shares = append(shares, share)
+	}
+
+	// Insert shares
+	if len(shares) > 0 {
+		_, err = ctl.expenseShareRepo.CreateMany(ctx, shares)
+		if err != nil {
+			return utils.Internal(c, "Failed to create expense shares")
+		}
 	}
 
 	return utils.Success(c, fiber.StatusCreated, "Expense created", expense, nil)
@@ -71,7 +102,7 @@ func (ctl *ExpenseController) GetExpensesByTrip(c *fiber.Ctx) error {
 	defer cancel()
 
 	var expenses []models.Expense
-	err = ctl.repo.FindManyByTrip(ctx, tripID, &expenses)
+	err = ctl.repo.FindByTrip(ctx, tripID, &expenses)
 	if err != nil {
 		return utils.Internal(c, "Failed to fetch expenses")
 	}

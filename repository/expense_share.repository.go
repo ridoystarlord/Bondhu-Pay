@@ -22,6 +22,10 @@ func (r *ExpenseShareRepository) Create(ctx context.Context, share interface{}) 
 	return r.base.Create(ctx, share)
 }
 
+func (r *ExpenseShareRepository) CreateMany(ctx context.Context, shares []interface{}) (*mongo.InsertManyResult, error) {
+	return r.base.CreateMany(ctx, shares)
+}
+
 func (r *ExpenseShareRepository) FindByExpense(ctx context.Context, expenseID primitive.ObjectID, results interface{}) error {
 	filter := bson.M{"expenseId": expenseID}
 	return r.base.FindMany(ctx, filter, 0, 0, results)

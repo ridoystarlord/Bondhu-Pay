@@ -8,8 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func SetupExpenseRoutes(api fiber.Router, expenseColl *mongo.Collection) {
-	controller := controllers.NewExpenseController(expenseColl)
+func SetupExpenseRoutes(api fiber.Router, expenseColl *mongo.Collection,expenseShareColl *mongo.Collection) {
+	controller := controllers.NewExpenseController(expenseColl,expenseShareColl)
 
 	expense := api.Group("/trips/:tripId/expenses")
 

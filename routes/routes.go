@@ -21,7 +21,7 @@ func SetupRoutes(app *fiber.App) {
 	SetupTripRoutes(api, tripCollection,tripMemberCollection)
 	SetupTripMemberRoutes(api, tripMemberCollection)
 	SetupTripMemberPaymentRoutes(api, tripMemberPaymentCollection)
-	SetupExpenseRoutes(api, expenseCollection)
+	SetupExpenseRoutes(api, expenseCollection,expenseShareCollection)
 	SetupExpenseShareRoutes(api, expenseShareCollection)
 
 }
